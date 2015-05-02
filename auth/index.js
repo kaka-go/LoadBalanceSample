@@ -2,10 +2,22 @@
  * Module dependencies.
  */
 
-var express = require('../..');
+var express = require('express');
 var hash = require('./pass').hash;
 var bodyParser = require('body-parser');
 var session = require('express-session');
+var RedisStore = require('connect-redis')(session);
+var redis = require('redis'); 
+var client = redis.createClient(6379, "192.168.1.4");
+
+var store = new RedisStore({
+    host: "192.168.1.4",
+    port: 6379,
+    client: client
+});
+store.on('disconnect', function(){
+    console.log('disconnect');
+});
 
 var app = module.exports = express();
 
@@ -18,6 +30,7 @@ app.set('views', __dirname + '/views');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(session({
+  store: store,
   resave: false, // don't save session if unmodified
   saveUninitialized: false, // don't create session until something stored
   secret: 'shhhh, very secret'
